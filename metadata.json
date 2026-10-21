@@ -1,0 +1,6 @@
+{
+  "name": "MiniDeepEngine - Neural Network Framework & Studio",
+  "description": "An interactive deep learning engine built from scratch with forward pass, activation derivatives, backpropagation, and Adam optimizer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
