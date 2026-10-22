@@ -4,10 +4,12 @@
  */
 
 import { LayerInterface, Activation_ReLU, Activation_Sigmoid, Activation_Tanh, Activation_LeakyReLU, Activation_Linear, Activation_Softmax } from './activations';
+import { Activation_Custom } from './customActivation';
 import { DenseLayer, DropoutLayer } from './layers';
 import { LossInterface, Loss_MSE, Loss_BinaryCrossEntropy, Loss_CategoricalCrossEntropy } from './loss';
 import { Matrix, MatrixOps } from './matrix';
 import { OptimizerInterface, Optimizer_Adam, Optimizer_SGD } from './optimizers';
+import { MathInspectorLogger, InspectorLayerLog } from './inspectorLogger';
 
 export interface EvaluationMetrics {
   loss: number;
@@ -22,6 +24,11 @@ export class NeuralNetwork {
   optimizer: OptimizerInterface | null = null;
   loss_history: number[] = [];
   metric_history: number[] = [];
+  logger: MathInspectorLogger | null = null;
+
+  setLogger(logger: MathInspectorLogger | null): void {
+    this.logger = logger;
+  }
 
   add(layer: LayerInterface): void {
     this.layers.push(layer);
@@ -76,9 +83,48 @@ export class NeuralNetwork {
 
     // 3. Backward
     this.backward(prediction, y);
+    const lossGradient = this.loss_function.backward(prediction, y);
+
+    // Capture pre-optimization snapshot if logger is active
+    let layerSnapshots: InspectorLayerLog[] = [];
+    if (this.logger && this.logger.enabled) {
+      layerSnapshots = this.layers.map((layer, idx) => {
+        const isDense = layer instanceof DenseLayer;
+        const dense = isDense ? (layer as DenseLayer) : null;
+        return {
+          layerName: `${layer.name}_${idx + 1}`,
+          layerType: layer.name,
+          inputs: MatrixOps.clone(isDense ? dense!.inputs : (layer as any).inputs || []),
+          weights: dense ? MatrixOps.clone(dense.weights) : undefined,
+          biases: dense ? MatrixOps.clone(dense.biases) : undefined,
+          output: MatrixOps.clone(isDense ? dense!.output : (layer as any).output || []),
+          dweights: dense ? MatrixOps.clone(dense.dweights) : undefined,
+          dbiases: dense ? MatrixOps.clone(dense.dbiases) : undefined,
+          dinputs: dense ? MatrixOps.clone(dense.dvalues) : MatrixOps.clone((layer as any).dvalues || []),
+        };
+      });
+    }
 
     // 4. Optimize
     this.optimize();
+
+    // Attach updated weights to logger snapshot
+    if (this.logger && this.logger.enabled) {
+      this.layers.forEach((layer, idx) => {
+        if (layer instanceof DenseLayer && layerSnapshots[idx]) {
+          layerSnapshots[idx].updatedWeights = MatrixOps.clone(layer.weights);
+          layerSnapshots[idx].updatedBiases = MatrixOps.clone(layer.biases);
+        }
+      });
+      this.logger.logEpoch(
+        this.loss_history.length,
+        loss,
+        prediction,
+        y,
+        lossGradient,
+        layerSnapshots
+      );
+    }
 
     // 5. Compute metrics
     const metrics = this.evaluate(X, y);
@@ -214,6 +260,8 @@ export class NeuralNetwork {
         net.add(new Activation_Linear());
       } else if (layerData.type === 'Activation_Softmax') {
         net.add(new Activation_Softmax());
+      } else if (layerData.type === 'Activation_Custom') {
+        net.add(new Activation_Custom(layerData.presetType as any, layerData.customExpr as string));
       } else if (layerData.type === 'DropoutLayer') {
         net.add(new DropoutLayer(layerData.rate));
       }
@@ -257,6 +305,11 @@ export class NeuralNetwork {
       if (layer instanceof Activation_Tanh) return `    model.add(Activation_Tanh())`;
       if (layer instanceof Activation_LeakyReLU) return `    model.add(Activation_LeakyReLU(alpha=${layer.alpha}))`;
       if (layer instanceof Activation_Linear) return `    model.add(Activation_Linear())`;
+      if (layer instanceof Activation_Custom) {
+        if (layer.presetType === 'swish') return `    model.add(Activation_Swish())`;
+        if (layer.presetType === 'siren') return `    model.add(Activation_Siren())`;
+        return `    model.add(Activation_Custom(preset="${layer.presetType}"))`;
+      }
       return `    # Unknown layer`;
     }).join('\n');
 
@@ -528,6 +581,130 @@ ${layersCode}
 
     # Plot
     model.plot_loss()
+`;
+  }
+
+  exportInspectorPythonCode(
+    datasetX: Matrix = [[0, 0], [0, 1], [1, 0], [1, 1]],
+    datasetY: Matrix = [[0], [1], [1], [0]],
+    epochs = 100
+  ): string {
+    const xStr = JSON.stringify(datasetX);
+    const yStr = JSON.stringify(datasetY);
+    const lr = this.optimizer?.learning_rate || 0.05;
+
+    return `# ==========================================================
+# MiniDeepEngine - Educational & R&D Math Inspector Lab
+# Step-by-step Backpropagation Logger, Chain Rule & Loss Curve
+# ==========================================================
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- 1. Dense Layer with Full Math Inspector ---
+class DenseLayerWithInspector:
+    def __init__(self, n_inputs, n_neurons, layer_name="Dense"):
+        self.layer_name = layer_name
+        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        self.biases = np.zeros((1, n_neurons))
+        self.inputs = None
+        self.output = None
+        self.dweights = None
+        self.dbiases = None
+        self.dinputs = None
+        
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.output = np.dot(inputs, self.weights) + self.biases
+        return self.output
+
+    def backward(self, dvalues):
+        # Chain Rule calculations:
+        # dW = inputs^T · dvalues
+        # db = sum(dvalues, axis=0)
+        # dinputs = dvalues · weights^T
+        self.dweights = np.dot(self.inputs.T, dvalues)
+        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+        self.dinputs = np.dot(dvalues, self.weights.T)
+        return self.dinputs
+
+# --- 2. Loss Function MSE with Gradient Inspector ---
+class Loss_MSE_Inspector:
+    def forward(self, y_pred, y_true):
+        return np.mean((y_pred - y_true) ** 2)
+
+    def backward(self, y_pred, y_true):
+        samples = len(y_pred)
+        return 2 * (y_pred - y_true) / samples
+
+# --- 3. Experimental / Custom Activation: Swish (SiLU) ---
+class Activation_Swish_Inspector:
+    def forward(self, inputs):
+        self.inputs = inputs
+        self.sig = 1 / (1 + np.exp(-np.clip(inputs, -500, 500)))
+        self.output = inputs * self.sig
+        return self.output
+
+    def backward(self, dvalues):
+        # Derivative of Swish: sig + x * sig * (1 - sig)
+        grad = self.sig + self.inputs * self.sig * (1 - self.sig)
+        return dvalues * grad
+
+# --- 4. Training Loop with Live Mathematical Logger ---
+if __name__ == "__main__":
+    np.random.seed(42)
+    
+    # Dataset
+    X = np.array(${xStr})
+    y = np.array(${yStr})
+
+    n_inputs = X.shape[1]
+    n_outputs = y.shape[1]
+
+    dense = DenseLayerWithInspector(n_inputs=n_inputs, n_neurons=n_outputs, layer_name="Layer_1")
+    loss_fn = Loss_MSE_Inspector()
+
+    epochs = ${epochs}
+    learning_rate = ${lr}
+    loss_history = []
+
+    print("=== Starting MiniDeepEngine Math Inspector Logger ===")
+    
+    for epoch in range(epochs):
+        # 1. Forward Pass
+        preds = dense.forward(X)
+        loss = loss_fn.forward(preds, y)
+        loss_history.append(loss)
+        
+        # 2. Backpropagation & Chain Rule
+        dvalues = loss_fn.backward(preds, y)
+        dense.backward(dvalues)
+        
+        # Log first 3 epochs in high detail
+        if epoch < 3 or (epoch + 1) % 20 == 0:
+            print(f"\\n--- Epoch {epoch + 1:3d} ---")
+            print(f"[1] Forward Pass -> Inputs: {X[:2].round(3).tolist()}, Preds: {preds[:2].round(3).tolist()}, Loss: {loss:.6f}")
+            print(f"[2] Backpropagation -> dWeights:\\n{dense.dweights.round(4)}")
+            print(f"    dBiases: {dense.dbiases.round(4).tolist()}")
+        
+        # 3. Parameter Update
+        dense.weights -= learning_rate * dense.dweights
+        dense.biases -= learning_rate * dense.dbiases
+        
+        if epoch < 3:
+            print(f"[3] Weights Updated -> New Weights:\\n{dense.weights.round(4)}")
+
+    print(f"\\n=== Training Finished! Final Loss: {loss_history[-1]:.6f} ===")
+
+    # 4. Plot Loss Curve
+    plt.figure(figsize=(8, 5))
+    plt.plot(range(1, epochs + 1), loss_history, color='blue', linewidth=2, label='Training Loss (MSE)')
+    plt.title('MiniDeepEngine - Educational Loss Curve', fontsize=14)
+    plt.xlabel('Epochs', fontsize=12)
+    plt.ylabel('Loss Value', fontsize=12)
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.legend()
+    plt.show()
 `;
   }
 }

@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { MatrixOps } from './matrix';
 import { Activation_ReLU, Activation_Sigmoid, Activation_Tanh, Activation_LeakyReLU } from './activations';
+import { Activation_Custom } from './customActivation';
+import { MathInspectorLogger } from './inspectorLogger';
 import { DenseLayer } from './layers';
 import { Loss_MSE, Loss_BinaryCrossEntropy } from './loss';
 import { Optimizer_Adam, Optimizer_SGD } from './optimizers';
@@ -145,3 +147,42 @@ test('NeuralNetwork successfully learns XOR non-linear mapping', () => {
 
   assert.ok(isXorLearned, `XOR should be separated: got ${preds.map(p => p[0].toFixed(2)).join(', ')}`);
 });
+
+test('MathInspectorLogger records backprop gradients and updates', () => {
+  const logger = new MathInspectorLogger();
+  const model = new NeuralNetwork();
+  model.add(new DenseLayer(2, 1));
+  model.set(new Loss_MSE(), new Optimizer_SGD(0.05));
+  model.setLogger(logger);
+
+  const X = [[1.0, 0.5]];
+  const y = [[2.0]];
+
+  model.step(X, y);
+
+  const latest = logger.getLatest();
+  assert.ok(latest !== null, 'Logger should have recorded the epoch');
+  assert.equal(latest.epoch, 1);
+  assert.ok(latest.formattedSummary.includes('[1] Forward Pass'), 'Summary should contain Forward Pass section');
+  assert.ok(latest.formattedSummary.includes('[2] Loss Gradient'), 'Summary should contain Backpropagation section');
+  assert.ok(latest.formattedSummary.includes('dWeights = Xᵀ • dZ'), 'Summary should detail Chain Rule');
+});
+
+test('Activation_Custom (Swish & Siren) computes correct forward and backward derivatives', () => {
+  const swish = new Activation_Custom('swish');
+  const out = swish.forward([[0.0]]);
+  // Swish(0) = 0 * sig(0) = 0
+  assert.equal(out[0][0], 0);
+
+  // Swish derivative at 0: sig(0) + 0 = 0.5
+  const dinputs = swish.backward([[1.0]]);
+  assert.ok(Math.abs(dinputs[0][0] - 0.5) < 1e-4);
+
+  // Siren: sin(0) = 0, derivative cos(0) = 1
+  const siren = new Activation_Custom('siren');
+  const sirenOut = siren.forward([[0.0]]);
+  assert.equal(sirenOut[0][0], 0);
+  const sirenGrad = siren.backward([[1.0]]);
+  assert.ok(Math.abs(sirenGrad[0][0] - 1.0) < 1e-4);
+});
+

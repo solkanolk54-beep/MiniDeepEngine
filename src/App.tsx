@@ -14,6 +14,10 @@ import { MathStepInspector } from './components/MathStepInspector';
 import { ArchitectureBuilder } from './components/ArchitectureBuilder';
 import { CodeExportModal } from './components/CodeExportModal';
 import { MathGuideModal } from './components/MathGuideModal';
+import { MathInspectorLogger } from './components/MathInspectorLogger';
+import { CustomActivationLab } from './components/CustomActivationLab';
+import { XORBenchmarkLab } from './components/XORBenchmarkLab';
+import { MathInspectorLogger as EngineLogger } from './engine/inspectorLogger';
 import { NeuralNetwork, EvaluationMetrics } from './engine/model';
 import { DenseLayer } from './engine/layers';
 import { Activation_ReLU, Activation_Sigmoid, LayerInterface } from './engine/activations';
@@ -21,7 +25,7 @@ import { Loss_MSE, LossInterface } from './engine/loss';
 import { Optimizer_Adam, OptimizerInterface } from './engine/optimizers';
 import { Dataset, DATASET_PRESETS, generateXOR } from './engine/datasets';
 import { Language, translations } from './translations';
-import { PlaySquare, Compass, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { PlaySquare, Compass, SlidersHorizontal, Sparkles, Terminal, Cpu, Flame } from 'lucide-react';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
@@ -29,6 +33,10 @@ export default function App() {
 
   // Active dataset
   const [dataset, setDataset] = useState<Dataset>(DATASET_PRESETS[0]); // XOR default
+
+  // Math Inspector Logger
+  const [inspectorLogger] = useState(() => new EngineLogger(150));
+  const [, setLogTick] = useState(0);
 
   // Model instance
   const [model, setModel] = useState<NeuralNetwork>(() => {
@@ -38,8 +46,14 @@ export default function App() {
     net.add(new DenseLayer(8, 1));
     net.add(new Activation_Sigmoid());
     net.set(new Loss_MSE(), new Optimizer_Adam(0.04));
+    net.setLogger(new EngineLogger(150));
     return net;
   });
+
+  // Ensure logger is attached
+  useEffect(() => {
+    model.setLogger(inspectorLogger);
+  }, [model, inspectorLogger]);
 
   // Training state
   const [isTraining, setIsTraining] = useState<boolean>(false);
@@ -50,8 +64,9 @@ export default function App() {
   const [metrics, setMetrics] = useState<EvaluationMetrics | null>(null);
   const [speed, setSpeed] = useState<number>(5);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'playground' | 'math' | 'architecture'>('playground');
+  // Active Tab & SubTab
+  const [activeTab, setActiveTab] = useState<'playground' | 'math' | 'architecture' | 'rdlab'>('playground');
+  const [rdSubTab, setRdSubTab] = useState<'xor' | 'logger' | 'activation'>('xor');
 
   // Modals & Inspection
   const [selectedNeuron, setSelectedNeuron] = useState<{ layerIdx: number; neuronIdx: number } | null>(null);
@@ -89,10 +104,11 @@ export default function App() {
     }
 
     const initialMetrics = net.evaluate(dataset.X, dataset.y);
+    net.setLogger(inspectorLogger);
     setCurrentLoss(initialMetrics.loss);
     setMetrics(initialMetrics);
     setModel(net);
-  }, [dataset]);
+  }, [dataset, inspectorLogger]);
 
   // Switch dataset
   const handleSelectDataset = (d: Dataset) => {
@@ -120,6 +136,7 @@ export default function App() {
     }
 
     const initMetrics = net.evaluate(d.X, d.y);
+    net.setLogger(inspectorLogger);
     setCurrentLoss(initMetrics.loss);
     setMetrics(initMetrics);
     setModel(net);
@@ -134,6 +151,7 @@ export default function App() {
     setMetrics(res.metrics);
     setLossHistory([...model.loss_history]);
     setMetricHistory([...model.metric_history]);
+    setLogTick(t => t + 1);
   }, [model, dataset]);
 
   // Animation frame loop for continuous training
@@ -163,6 +181,7 @@ export default function App() {
       setMetrics(latestMetrics);
       setLossHistory([...model.loss_history]);
       setMetricHistory([...model.metric_history]);
+      setLogTick(t => t + 1);
 
       animationRef.current = requestAnimationFrame(loop);
     };
@@ -198,6 +217,7 @@ export default function App() {
     const net = new NeuralNetwork();
     layers.forEach(l => net.add(l));
     net.set(loss, optimizer);
+    net.setLogger(inspectorLogger);
 
     const initMetrics = net.evaluate(dataset.X, dataset.y);
     setCurrentLoss(initMetrics.loss);
@@ -210,6 +230,7 @@ export default function App() {
   const handleImportModel = (jsonStr: string) => {
     try {
       const net = NeuralNetwork.fromJSON(jsonStr);
+      net.setLogger(inspectorLogger);
       setIsTraining(false);
       setEpochs(0);
       setLossHistory([]);
@@ -221,6 +242,20 @@ export default function App() {
     } catch (err: any) {
       alert(`Import error: ${err.message}`);
     }
+  };
+
+  const handleClearLogs = () => {
+    inspectorLogger.clear();
+    setLogTick(t => t + 1);
+  };
+
+  const handleActivationInjected = () => {
+    setIsTraining(false);
+    const m = model.evaluate(dataset.X, dataset.y);
+    setCurrentLoss(m.loss);
+    setMetrics(m);
+    // clone to trigger state update across components
+    setModel(Object.assign(Object.create(Object.getPrototypeOf(model)), model));
   };
 
   return (
@@ -274,6 +309,18 @@ export default function App() {
           >
             <SlidersHorizontal className="w-4 h-4" />
             <span>{t.architectureTab}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rdlab')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition ${
+              activeTab === 'rdlab'
+                ? 'bg-gradient-to-r from-emerald-600 to-cyan-600 text-white shadow-lg shadow-emerald-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-emerald-300" />
+            <span>{t.rdLabTab}</span>
           </button>
         </div>
 
@@ -339,6 +386,111 @@ export default function App() {
             onApplyArchitecture={handleApplyArchitecture}
             lang={lang}
           />
+        )}
+
+        {/* Tab 4: R&D Lab & Math Inspector Logger */}
+        {activeTab === 'rdlab' && (
+          <div className="space-y-6">
+            {/* R&D Sub-Navigation Bar */}
+            <div className="bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl flex flex-wrap items-center justify-between gap-2 shadow-xl">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => setRdSubTab('xor')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
+                    rdSubTab === 'xor'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Cpu className="w-4 h-4 text-emerald-300" />
+                  <span>معضلة XOR والتصنيف غير الخطي (XOR Benchmark)</span>
+                  <span className="text-[10px] bg-emerald-400/20 text-emerald-200 px-1.5 py-0.2 rounded font-mono">
+                    المعيار الذهبي
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setRdSubTab('logger')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
+                    rdSubTab === 'logger'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Terminal className="w-4 h-4 text-indigo-300" />
+                  <span>سِجِل التشريح الرياضي الحي (Math Logger)</span>
+                </button>
+
+                <button
+                  onClick={() => setRdSubTab('activation')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
+                    rdSubTab === 'activation'
+                      ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>مختبر دوال التفعيل المخصصة (Custom Activation)</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Sub-view 1: XOR Benchmark Lab */}
+            {rdSubTab === 'xor' && (
+              <XORBenchmarkLab lang={lang} />
+            )}
+
+            {/* Sub-view 2: Math Inspector Logger */}
+            {rdSubTab === 'logger' && (
+              <div className="space-y-6">
+                <TrainingControls
+                  lang={lang}
+                  isTraining={isTraining}
+                  onToggleTraining={() => setIsTraining(!isTraining)}
+                  onStep={handleStep}
+                  onReset={handleReset}
+                  epochs={epochs}
+                  currentLoss={currentLoss}
+                  metrics={metrics}
+                  learningRate={model.optimizer?.learning_rate || 0.01}
+                  speed={speed}
+                  setSpeed={setSpeed}
+                  isConverged={metrics?.accuracy !== undefined && metrics.accuracy >= 0.99}
+                />
+                <MathInspectorLogger
+                  logger={inspectorLogger}
+                  model={model}
+                  lang={lang}
+                  onClearLogs={handleClearLogs}
+                />
+              </div>
+            )}
+
+            {/* Sub-view 3: Custom Activation Sandbox */}
+            {rdSubTab === 'activation' && (
+              <div className="space-y-6">
+                <TrainingControls
+                  lang={lang}
+                  isTraining={isTraining}
+                  onToggleTraining={() => setIsTraining(!isTraining)}
+                  onStep={handleStep}
+                  onReset={handleReset}
+                  epochs={epochs}
+                  currentLoss={currentLoss}
+                  metrics={metrics}
+                  learningRate={model.optimizer?.learning_rate || 0.01}
+                  speed={speed}
+                  setSpeed={setSpeed}
+                  isConverged={metrics?.accuracy !== undefined && metrics.accuracy >= 0.99}
+                />
+                <CustomActivationLab
+                  model={model}
+                  lang={lang}
+                  onActivationInjected={handleActivationInjected}
+                />
+              </div>
+            )}
+          </div>
         )}
       </main>
 

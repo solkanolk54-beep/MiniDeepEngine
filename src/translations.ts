@@ -58,14 +58,36 @@ export interface Translations {
   dropoutRate: string;
   removeLayer: string;
   applyArchitecture: string;
-  
-  // Code & Export
+  presetsTitle: string;
   downloadPython: string;
   copyCode: string;
   copied: string;
   exportJSON: string;
   importJSON: string;
-  presetsTitle: string;
+  
+  // R&D & Math Logger Lab
+  rdLabTab: string;
+  mathLoggerTitle: string;
+  customActivationTitle: string;
+  liveTerminalLogs: string;
+  clearLogs: string;
+  copyLogs: string;
+  testCustomActivation: string;
+  injectActivation: string;
+  activationInjected: string;
+  curveComparison: string;
+
+  // XOR Benchmark
+  xorBenchmarkTab: string;
+  xorSubtitle: string;
+  xorLinearPerceptron: string;
+  xorMultiLayer: string;
+  xorTruthTable: string;
+  xorDecisionBoundary: string;
+  xorRun1500: string;
+  xorLossCurve: string;
+  xorWeightsChainRule: string;
+  xorPythonCode: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -130,6 +152,29 @@ export const translations: Record<Language, Translations> = {
     exportJSON: 'تصدير النموذج (JSON)',
     importJSON: 'استيراد نموذج جاهز',
     presetsTitle: 'نماذج جاهزة سريعة',
+
+    rdLabTab: 'مختبر الأبحاث وسجل التشريح (R&D Lab)',
+    mathLoggerTitle: 'سِجِل التشريح الرياضي الحي (Math Inspector Logger)',
+    customActivationTitle: 'مختبر دوال التفعيل المخصصة (Custom Activation Sandbox)',
+    liveTerminalLogs: 'سجل التدرجات والعمليات لحظياً',
+    clearLogs: 'مسح السجلات',
+    copyLogs: 'نسخ مخرجات السجل',
+    testCustomActivation: 'اختبار الدالة وحساب المشتقة',
+    injectActivation: 'حقن الدالة في الطبقات المخفية للنموذج',
+    activationInjected: 'تم حقن الدالة المخصصة بنجاح في معمارية النموذج!',
+    curveComparison: 'مقارنة دالة التفعيل مع مشتقتها f(x) vs f\'(x)',
+
+    // XOR Benchmark
+    xorBenchmarkTab: 'معضلة XOR والتصنيف غير الخطي (XOR Benchmark)',
+    xorSubtitle: 'اختبار المعيار الكلاسيكي للشبكات العصبية: كيف تحل الطبقة المخفية مع دالة ReLU ما عجزت عنه الخطوط المستقيمة',
+    xorLinearPerceptron: 'البرسبترون الخطي البسيط (بدون طبقة مخفية - سيعجز عن حل XOR)',
+    xorMultiLayer: 'شبكة متعددة الطبقات (طبقة مخفية 4 خلايا + ReLU - ستحل XOR بنسبة 100%)',
+    xorTruthTable: 'جدول الحقيقة والتنبؤات اللحظية (Truth Table)',
+    xorDecisionBoundary: 'خريطة حدود القرار الثنائية (Decision Boundary)',
+    xorRun1500: 'تشغيل 1500 دورة تدريبية',
+    xorLossCurve: 'منحنى الخسارة (MSE Loss Curve)',
+    xorWeightsChainRule: 'تشريح الأوزان وتدرجات قاعدة السلسلة (Chain Rule)',
+    xorPythonCode: 'كود بايثون المستقل (NumPy + Matplotlib)',
   },
   en: {
     appTitle: 'MiniDeepEngine Studio',
@@ -192,5 +237,28 @@ export const translations: Record<Language, Translations> = {
     exportJSON: 'Export Model (JSON)',
     importJSON: 'Import Model (JSON)',
     presetsTitle: 'Model Architecture Presets',
+
+    rdLabTab: 'R&D Lab & Math Logger',
+    mathLoggerTitle: 'Live Mathematical Inspector Logger',
+    customActivationTitle: 'Custom Activation Function Sandbox',
+    liveTerminalLogs: 'Live Gradient & Layer Logs',
+    clearLogs: 'Clear Logs',
+    copyLogs: 'Copy Terminal Output',
+    testCustomActivation: 'Test Function & Derivative',
+    injectActivation: 'Inject into Model Hidden Layers',
+    activationInjected: 'Custom activation successfully injected into model!',
+    curveComparison: 'Function & Derivative Curve Comparison: f(x) vs f\'(x)',
+
+    // XOR Benchmark
+    xorBenchmarkTab: 'XOR Non-Linearity Benchmark',
+    xorSubtitle: 'Classic benchmark proving why hidden layers and non-linear ReLU overcome linear boundaries',
+    xorLinearPerceptron: 'Linear Perceptron (No hidden layer - cannot solve XOR)',
+    xorMultiLayer: '2-Layer MLP (4 hidden neurons + ReLU - solves XOR to 100%)',
+    xorTruthTable: 'Truth Table & Real-Time Predictions',
+    xorDecisionBoundary: 'Decision Boundary & Probability Map',
+    xorRun1500: 'Run Full 1500 Epochs',
+    xorLossCurve: 'MSE Loss Progression Curve',
+    xorWeightsChainRule: 'Weights & Chain Rule Gradient Inspector',
+    xorPythonCode: 'Standalone Python Code (NumPy + Matplotlib)',
   },
 };
