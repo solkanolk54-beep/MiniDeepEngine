@@ -152,8 +152,66 @@ export function generateSineWave(nSamples = 50): Dataset {
   };
 }
 
+export function generateRealEstatePricing(): Dataset {
+  return {
+    id: 'real_estate_pricing',
+    name: 'Real Estate & Apartment Pricing',
+    nameAr: 'تسعير العقارات والشقق (Real Estate Regression)',
+    type: 'regression',
+    X: [
+      [60, 2],
+      [80, 3],
+      [100, 3],
+      [120, 4],
+      [150, 5],
+      [90, 2],
+    ],
+    y: [
+      [12],
+      [16],
+      [20],
+      [25],
+      [32],
+      [18],
+    ],
+    description: 'Predicting real estate prices based on apartment area (m²) and number of rooms using MLP Regression & Adam Optimizer.',
+    descriptionAr: 'تطبيق عملي: التنبؤ بأسعار الشقق والعقارات بناءً على المساحة (م²) وعدد الغرف باستخدام شبكة عصبية متعددة الطبقات وخوارزمية Adam.',
+    domain: { xMin: 50, xMax: 160, yMin: 1, yMax: 6 },
+  };
+}
+
+export function generateBehaviorClassification(): Dataset {
+  return {
+    id: 'behavior_classification',
+    name: 'Customer Behavior & Binary Classification',
+    nameAr: 'تصنيف السلوك والعملاء (Binary Classification)',
+    type: 'classification',
+    X: [
+      [0.1, 0.2],
+      [0.2, 0.1],
+      [0.8, 0.9],
+      [0.9, 0.8],
+      [0.1, 0.9],
+      [0.9, 0.2],
+    ],
+    y: [
+      [0],
+      [0],
+      [1],
+      [1],
+      [0],
+      [1],
+    ],
+    description: 'Binary classification of user behavior with Sigmoid activation and Binary Cross-Entropy loss.',
+    descriptionAr: 'تطبيق عملي: تصنيف سلوك العملاء وفصل الفئات الثنائية باستخدام دالة Sigmoid ودالة خسارة Binary Cross-Entropy.',
+    domain: { xMin: -0.1, xMax: 1.1, yMin: -0.1, yMax: 1.1 },
+  };
+}
+
 export const DATASET_PRESETS: Dataset[] = [
   generateXOR(),
+  generateBehaviorClassification(),
+  generateRealEstatePricing(),
   generateCircle(),
   generateMoons(),
   generatePromptRegression(),

@@ -22,6 +22,9 @@ export class DenseLayer implements LayerInterface {
   dweights: Matrix = [];
   dbiases: Matrix = [];
   dvalues: Matrix = []; // gradient with respect to inputs
+  get dinputs(): Matrix {
+    return this.dvalues;
+  }
 
   // Optimizer state tracking (Adam / Momentum)
   weight_momentums?: Matrix;

@@ -17,6 +17,9 @@ import { MathGuideModal } from './components/MathGuideModal';
 import { MathInspectorLogger } from './components/MathInspectorLogger';
 import { CustomActivationLab } from './components/CustomActivationLab';
 import { XORBenchmarkLab } from './components/XORBenchmarkLab';
+import { RealEstatePricingLab } from './components/RealEstatePricingLab';
+import { BinaryClassificationLab } from './components/BinaryClassificationLab';
+import { UnifiedEngineStructureLab } from './components/UnifiedEngineStructureLab';
 import { MathInspectorLogger as EngineLogger } from './engine/inspectorLogger';
 import { NeuralNetwork, EvaluationMetrics } from './engine/model';
 import { DenseLayer } from './engine/layers';
@@ -25,7 +28,7 @@ import { Loss_MSE, LossInterface } from './engine/loss';
 import { Optimizer_Adam, OptimizerInterface } from './engine/optimizers';
 import { Dataset, DATASET_PRESETS, generateXOR } from './engine/datasets';
 import { Language, translations } from './translations';
-import { PlaySquare, Compass, SlidersHorizontal, Sparkles, Terminal, Cpu, Flame } from 'lucide-react';
+import { PlaySquare, Compass, SlidersHorizontal, Sparkles, Terminal, Cpu, Flame, Building, Target, FolderTree } from 'lucide-react';
 
 export default function App() {
   const [lang, setLang] = useState<Language>('ar');
@@ -65,8 +68,8 @@ export default function App() {
   const [speed, setSpeed] = useState<number>(5);
 
   // Active Tab & SubTab
-  const [activeTab, setActiveTab] = useState<'playground' | 'math' | 'architecture' | 'rdlab'>('playground');
-  const [rdSubTab, setRdSubTab] = useState<'xor' | 'logger' | 'activation'>('xor');
+  const [activeTab, setActiveTab] = useState<'playground' | 'math' | 'architecture' | 'rdlab' | 'pricing' | 'classification' | 'modular'>('modular');
+  const [rdSubTab, setRdSubTab] = useState<'xor' | 'pricing' | 'classification' | 'logger' | 'activation'>('classification');
 
   // Modals & Inspection
   const [selectedNeuron, setSelectedNeuron] = useState<{ layerIdx: number; neuronIdx: number } | null>(null);
@@ -322,6 +325,51 @@ export default function App() {
             <Sparkles className="w-4 h-4 text-emerald-300" />
             <span>{t.rdLabTab}</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('pricing')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition ${
+              activeTab === 'pricing'
+                ? 'bg-gradient-to-r from-indigo-600 via-pink-600 to-amber-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Building className="w-4 h-4 text-amber-300" />
+            <span>{t.pricingTab}</span>
+            <span className="hidden sm:inline-block text-[10px] bg-amber-400/20 text-amber-200 px-1.5 py-0.5 rounded font-mono">
+              {lang === 'ar' ? 'تسعير' : 'Regression'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('classification')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition ${
+              activeTab === 'classification'
+                ? 'bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-lg shadow-sky-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <Target className="w-4 h-4 text-sky-300" />
+            <span>{t.classificationTab}</span>
+            <span className="hidden sm:inline-block text-[10px] bg-sky-400/20 text-sky-200 px-1.5 py-0.5 rounded font-mono">
+              {lang === 'ar' ? 'تصنيف ثنائي' : 'Classification'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('modular')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition ${
+              activeTab === 'modular'
+                ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-lg shadow-indigo-600/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-900'
+            }`}
+          >
+            <FolderTree className="w-4 h-4 text-purple-300" />
+            <span>{t.modularEngineTab}</span>
+            <span className="hidden sm:inline-block text-[10px] bg-purple-400/20 text-purple-200 px-1.5 py-0.5 rounded font-mono">
+              Package
+            </span>
+          </button>
         </div>
 
         {/* Tab 1: Playground */}
@@ -410,6 +458,36 @@ export default function App() {
                 </button>
 
                 <button
+                  onClick={() => setRdSubTab('pricing')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
+                    rdSubTab === 'pricing'
+                      ? 'bg-gradient-to-r from-indigo-600 via-pink-600 to-amber-600 text-white shadow-lg shadow-indigo-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Building className="w-4 h-4 text-amber-300" />
+                  <span>تطبيق عملي 1: تسعير العقارات (Regression)</span>
+                  <span className="text-[10px] bg-amber-400/20 text-amber-200 px-1.5 py-0.2 rounded font-mono">
+                    Adam + MLP
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setRdSubTab('classification')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
+                    rdSubTab === 'classification'
+                      ? 'bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-lg shadow-sky-600/30'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
+                  }`}
+                >
+                  <Target className="w-4 h-4 text-sky-300" />
+                  <span>تطبيق عملي 2: التصنيف وتحليل السلوك (Classification)</span>
+                  <span className="text-[10px] bg-sky-400/20 text-sky-200 px-1.5 py-0.2 rounded font-mono">
+                    Sigmoid + BCE
+                  </span>
+                </button>
+
+                <button
                   onClick={() => setRdSubTab('logger')}
                   className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs sm:text-sm transition ${
                     rdSubTab === 'logger'
@@ -440,7 +518,17 @@ export default function App() {
               <XORBenchmarkLab lang={lang} />
             )}
 
-            {/* Sub-view 2: Math Inspector Logger */}
+            {/* Sub-view 2: Real Estate Pricing Lab */}
+            {rdSubTab === 'pricing' && (
+              <RealEstatePricingLab lang={lang} />
+            )}
+
+            {/* Sub-view 3: Binary Classification Lab */}
+            {rdSubTab === 'classification' && (
+              <BinaryClassificationLab lang={lang} />
+            )}
+
+            {/* Sub-view 4: Math Inspector Logger */}
             {rdSubTab === 'logger' && (
               <div className="space-y-6">
                 <TrainingControls
@@ -466,7 +554,7 @@ export default function App() {
               </div>
             )}
 
-            {/* Sub-view 3: Custom Activation Sandbox */}
+            {/* Sub-view 5: Custom Activation Sandbox */}
             {rdSubTab === 'activation' && (
               <div className="space-y-6">
                 <TrainingControls
@@ -491,6 +579,21 @@ export default function App() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Tab 5: Real Estate Pricing Practical Application */}
+        {activeTab === 'pricing' && (
+          <RealEstatePricingLab lang={lang} />
+        )}
+
+        {/* Tab 6: Binary Classification & Behavior Analysis */}
+        {activeTab === 'classification' && (
+          <BinaryClassificationLab lang={lang} />
+        )}
+
+        {/* Tab 7: Unified Modular Engine Structure (Package Explorer & Runner) */}
+        {activeTab === 'modular' && (
+          <UnifiedEngineStructureLab lang={lang} />
         )}
       </main>
 

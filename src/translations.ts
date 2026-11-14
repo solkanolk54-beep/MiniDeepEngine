@@ -88,6 +88,38 @@ export interface Translations {
   xorLossCurve: string;
   xorWeightsChainRule: string;
   xorPythonCode: string;
+
+  // Real Estate Pricing
+  pricingTab: string;
+  pricingTitle: string;
+  pricingSubtitle: string;
+  pricingArea: string;
+  pricingRooms: string;
+  pricingActualPrice: string;
+  pricingPredictedPrice: string;
+  pricingResidual: string;
+  pricingRun1000: string;
+  pricingValuationTool: string;
+  pricingPredictButton: string;
+  pricingUnseenTest: string;
+  pricingAdamInsight: string;
+
+  // Classification & Behavior Studio
+  classificationTab: string;
+  classificationTitle: string;
+  classificationSubtitle: string;
+  classificationSigmoidInsight: string;
+  classificationBCEInsight: string;
+  classificationThreshold: string;
+  classificationProbability: string;
+  classificationPredictedClass: string;
+  classificationTrueClass: string;
+  classificationRun1200: string;
+  classificationFeature1: string;
+  classificationFeature2: string;
+
+  // Unified Modular Engine Structure
+  modularEngineTab: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -175,6 +207,38 @@ export const translations: Record<Language, Translations> = {
     xorLossCurve: 'منحنى الخسارة (MSE Loss Curve)',
     xorWeightsChainRule: 'تشريح الأوزان وتدرجات قاعدة السلسلة (Chain Rule)',
     xorPythonCode: 'كود بايثون المستقل (NumPy + Matplotlib)',
+
+    // Real Estate Pricing
+    pricingTab: 'تطبيق تسعير العقارات (Regression)',
+    pricingTitle: 'التطبيق العملي الأول: النماذج التنبؤية وتسعير العقارات',
+    pricingSubtitle: 'بناء وتدريب نموذج ذكي متعدد الطبقات (MLP) مع محسّن Adam لتسعير الشقق بناءً على المساحة وعدد الغرف',
+    pricingArea: 'المساحة (م²)',
+    pricingRooms: 'عدد الغرف',
+    pricingActualPrice: 'السعر الفعلي (مليون)',
+    pricingPredictedPrice: 'السعر التقديري المتوقع',
+    pricingResidual: 'مؤشر الخطأ (Residual)',
+    pricingRun1000: 'تدريب 1000 دورة (Adam Epochs)',
+    pricingValuationTool: 'حاسبة تقييم وتسعير العقارات الذكية',
+    pricingPredictButton: 'توقع السعر الفوري',
+    pricingUnseenTest: 'اختبار التوقعات على عقارات غير مشمولة في التدريب',
+    pricingAdamInsight: 'سر تفوق Adam: التكيف اللحظي لمعدل التعلم يمنع انفجار التدرجات في البيانات الجدولية المستمرة',
+
+    // Classification & Behavior Studio
+    classificationTab: 'تطبيق التصنيف الثنائي (Classification)',
+    classificationTitle: 'التطبيق العملي الثاني: التصنيف الثنائي وتحليل السلوك',
+    classificationSubtitle: 'بناء وتدريب نموذج ذكي مع دالة Sigmoid ودالة خسارة Binary Cross-Entropy لتصنيف سلوك المستخدمين وفصل الفئات',
+    classificationSigmoidInsight: 'دالة Sigmoid: تحويل المخرج إلى احتمالية رياضية محصورة بدقة بين 0 و 1 تمثل P(y=1|X)',
+    classificationBCEInsight: 'خسارة Binary Cross-Entropy: دالة محدبة (Convex) تعاقب التنبؤات الخاطئة الواثقة بشدة عبر Log-Loss',
+    classificationThreshold: 'حد الفصل الاحتمالي (Decision Threshold)',
+    classificationProbability: 'الاحتمال المتوقع P(y=1)',
+    classificationPredictedClass: 'الفئة المصنفة',
+    classificationTrueClass: 'الفئة الحقيقية',
+    classificationRun1200: 'تدريب 1200 دورة (Adam Epochs)',
+    classificationFeature1: 'الميزة الأولى (X₁)',
+    classificationFeature2: 'الميزة الثانية (X₂)',
+
+    // Unified Modular Engine Structure
+    modularEngineTab: 'الهيكل الموحد (MiniDeepEngine Package)',
   },
   en: {
     appTitle: 'MiniDeepEngine Studio',
@@ -260,5 +324,37 @@ export const translations: Record<Language, Translations> = {
     xorLossCurve: 'MSE Loss Progression Curve',
     xorWeightsChainRule: 'Weights & Chain Rule Gradient Inspector',
     xorPythonCode: 'Standalone Python Code (NumPy + Matplotlib)',
+
+    // Real Estate Pricing
+    pricingTab: 'Real Estate Pricing (Regression)',
+    pricingTitle: 'Practical Application 1: Real Estate Valuation & Regression',
+    pricingSubtitle: 'Build and train a 2-layer MLP with Adam optimizer to price apartments based on Area (m²) and Rooms count',
+    pricingArea: 'Area (m²)',
+    pricingRooms: 'Rooms Count',
+    pricingActualPrice: 'Actual Price (M)',
+    pricingPredictedPrice: 'Predicted Valuation',
+    pricingResidual: 'Residual Error',
+    pricingRun1000: 'Train 1000 Epochs (Adam)',
+    pricingValuationTool: 'Smart Property Valuation Calculator',
+    pricingPredictButton: 'Estimate Property Value',
+    pricingUnseenTest: 'Evaluate Unseen Properties (Out-of-sample Test)',
+    pricingAdamInsight: 'Why Adam succeeds: Adaptive moment estimation ensures stable convergence on continuous tabular features without gradient explosion',
+
+    // Classification & Behavior Studio
+    classificationTab: 'Binary Classification Studio',
+    classificationTitle: 'Practical Application 2: Binary Classification & Behavior Analysis',
+    classificationSubtitle: 'Build and train an MLP with Sigmoid output and Binary Cross-Entropy loss to classify user behavior and separate binary classes',
+    classificationSigmoidInsight: 'Sigmoid Activation: Maps raw logits into a rigorous probability score strictly bounded between 0 and 1 representing P(y=1|X)',
+    classificationBCEInsight: 'Binary Cross-Entropy Loss: Convex log-loss penalizing overconfident incorrect predictions heavily and ensuring steady gradients',
+    classificationThreshold: 'Decision Probability Threshold',
+    classificationProbability: 'Predicted Probability P(y=1)',
+    classificationPredictedClass: 'Predicted Class',
+    classificationTrueClass: 'True Ground Truth Class',
+    classificationRun1200: 'Train 1200 Epochs (Adam)',
+    classificationFeature1: 'Feature 1 (X₁)',
+    classificationFeature2: 'Feature 2 (X₂)',
+
+    // Unified Modular Engine Structure
+    modularEngineTab: 'Unified Package (MiniDeepEngine)',
   },
 };
